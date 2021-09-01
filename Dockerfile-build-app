@@ -1,0 +1,30 @@
+# Download the base image for node
+FROM node:lts-alpine as build
+
+# Set the current working directory
+WORKDIR /app
+
+# Run through install process and cache dependencies
+COPY package.json /app/package.json
+RUN npm install
+
+# Add app directory
+COPY . /app
+
+# Generate the build file
+RUN npm run build
+
+###########################
+## To deploy to prod on NGINX ###
+
+# Download the base image for nginx server
+FROM nginx:alpine
+
+# Copy the built artifacts from the app
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Expose proper port
+EXPOSE 80
+
+# Run the nginx process
+CMD ["nginx", "-g", "daemon off;"]
